@@ -8,10 +8,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
 
 @RestController                 //Annotation que define um controlador REST e assim facilita o desenvolvimento de um projeto sendo Restful.
 @RequestMapping(value = "/clients")                 //Annotation onde o endereço no qual é mapeado para fazer as requisições.
@@ -32,4 +32,22 @@ public class ClientResource {
         Page<ClientDto> clients = clientService.findAllPaged(pageRequest);
         return ResponseEntity.ok().body(clients);
     }
+
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<ClientDto> findById(@PathVariable Long id){
+        ClientDto dto = clientService.findById(id);
+        return ResponseEntity.ok().body(dto);
+    }
+
+    /*
+    Método salvar um cliente, está seguindo o padrão de trazer no header da resposta, o location, no caso o endereço da recurso criado.
+     */
+    @PostMapping
+    public ResponseEntity<ClientDto> saveClient(@RequestBody ClientDto clientDto){
+        ClientDto dto = clientService.saveClient(clientDto);
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+                .buildAndExpand(clientDto.getId()).toUri();
+        return ResponseEntity.created(uri).body(dto);
+    }
+
 }
