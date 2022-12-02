@@ -4,8 +4,10 @@ import com.bianchini.apicrudclient.dtos.ClientDto;
 import com.bianchini.apicrudclient.entities.Client;
 import com.bianchini.apicrudclient.repositories.ClientRepository;
 import com.bianchini.apicrudclient.services.exceptions.ClientNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -45,6 +47,36 @@ public class ClientService {
         client = clientRepository.save(client);
         return new ClientDto(client);
     }
+
+    @Transactional
+    public ClientDto updateClient(Long id, ClientDto clientDto){
+        try {
+            Client client = clientRepository.getReferenceById(id);
+            copyDtoToEntity(clientDto, client);
+            client = clientRepository.save(client);
+            return new ClientDto(client);
+        } catch (EntityNotFoundException e){
+            throw new ClientNotFoundException("Client with id: " + id + " not found");
+        }
+    }
+
+    public void deleteClient(Long id){
+        try {
+            clientRepository.deleteById(id);
+        } catch (EmptyResultDataAccessException e){
+            throw new ClientNotFoundException("Client with id: " + id + " not found");
+        }
+    }
+
+    private void copyDtoToEntity(ClientDto clientDto, Client client) {
+
+        client.setName(clientDto.getName());
+        client.setCpf(clientDto.getCpf());
+        client.setBirthDate(clientDto.getBirthDate());
+        client.setIncome(clientDto.getIncome());
+        client.setChildren(clientDto.getChildren());
+    }
+
 
 
 }
